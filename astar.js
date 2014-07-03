@@ -88,7 +88,11 @@ var astar = {
             currentNode.closed = true;
 
             // Find all neighbors for the current node. Optionally find diagonal neighbors as well (false by default).
-            var neighbors = astar.neighbors(grid, currentNode, diagonal);
+            var diagonalThisNode = false;
+            if (diagonal == true) {
+                diagonalThisNode = (currentNode.options.diagonal != null) ? currentNode.options.diagonal : true;
+            }
+            var neighbors = astar.neighbors(grid, currentNode, diagonalThisNode);
 
             for(var i=0, il = neighbors.length; i < il; i++) {
                 var neighbor = neighbors[i];
@@ -215,7 +219,7 @@ function Graph(grid) {
         nodes[x] = [];
 
         for (var y = 0, row = grid[x]; y < row.length; y++) {
-            nodes[x][y] = new GraphNode(x, y, row[y]);
+            nodes[x][y] = new GraphNode(x, y, row[y].cost, row[y].options);
         }
     }
 
@@ -238,7 +242,7 @@ Graph.prototype.toString = function() {
     return graphString;
 };
 
-function GraphNode(x, y, type) {
+function GraphNode(x, y, type, options) {
     this.data = { };
     this.x = x;
     this.y = y;
@@ -247,6 +251,7 @@ function GraphNode(x, y, type) {
         y: y
     };
     this.type = type;
+    this.options = options || {};
 }
 
 GraphNode.prototype.toString = function() {
