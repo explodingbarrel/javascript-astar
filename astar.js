@@ -94,6 +94,22 @@ var astar = {
             }
             var neighbors = astar.neighbors(grid, currentNode, diagonalThisNode);
 
+            var validNeighborCount = 0;
+            for(var i in neighbors) {
+                var neighbor = neighbors[i];
+                if (!neighbor.closed && !neighbor.isWall() && !beenVisited) {
+                    validNeighborCount++;
+                }
+            }
+
+            //This will help us find paths that are mostly not diagonal, but may have node that diagonal is the only option
+            if ((validNeighborCount == 0) && (diagonal == false)) {
+                diagonalThisNode = (currentNode.options.diagonal != null) ? currentNode.options.diagonal : true;
+                if (diagonalThisNode) {
+                    neighbors = astar.neighbors(grid, currentNode, true);
+                }
+            }
+
             for(var i=0, il = neighbors.length; i < il; i++) {
                 var neighbor = neighbors[i];
 
