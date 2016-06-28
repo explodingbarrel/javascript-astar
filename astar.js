@@ -88,11 +88,8 @@ var astar = {
             currentNode.closed = true;
 
             // Find all neighbors for the current node. Optionally find diagonal neighbors as well (false by default).
-            var diagonalThisNode = false;
-            if (diagonal == true) {
-                diagonalThisNode = (currentNode.options.diagonal != null) ? currentNode.options.diagonal : true;
-            }
-            var neighbors = astar.neighbors(grid, currentNode, diagonalThisNode);
+            var disabledDirections = (currentNode.options.disabledDirections != null) ? currentNode.options.disabledDirections : {};
+            var neighbors = astar.neighbors(grid, currentNode, {diagonals:diagonal, disabledDirections:disabledDirections});
 
             var validNeighborCount = 0;
             for(var i in neighbors) {
@@ -104,10 +101,7 @@ var astar = {
 
             //This will help us find paths that are mostly not diagonal, but may have node that diagonal is the only option
             if ((validNeighborCount == 0) && (diagonal == false)) {
-                diagonalThisNode = (currentNode.options.diagonal != null) ? currentNode.options.diagonal : true;
-                if (diagonalThisNode) {
-                    neighbors = astar.neighbors(grid, currentNode, true);
-                }
+                astar.neighbors(grid, currentNode, {diagonals:true, disabledDirections:disabledDirections});
             }
 
             for(var i=0, il = neighbors.length; i < il; i++) {
@@ -175,50 +169,58 @@ var astar = {
         var d2 = Math.abs (pos1.y - pos0.y);
         return (D * (d1 + d2)) + ((D2 - (2 * D)) * Math.min(d1, d2));
     },
-    neighbors: function(grid, node, diagonals) {
+    neighbors: function(grid, node, options) {
         var ret = [];
         var x = node.x;
         var y = node.y;
 
+        options = options || {};
+        var diagonals = options.diagonals || false;
+        var dd = options.disabledDirections || {};
+
+        function IsDirectionEnabled(dir) {
+            return !dd[dir];
+        }
+
         // West
-        if(grid[x-1] && grid[x-1][y]) {
+        if(grid[x-1] && grid[x-1][y] && IsDirectionEnabled('w')) {
             ret.push(grid[x-1][y]);
         }
 
         // East
-        if(grid[x+1] && grid[x+1][y]) {
+        if(grid[x+1] && grid[x+1][y] && IsDirectionEnabled('e')) {
             ret.push(grid[x+1][y]);
         }
 
         // South
-        if(grid[x] && grid[x][y-1]) {
+        if(grid[x] && grid[x][y-1] && IsDirectionEnabled('s')) {
             ret.push(grid[x][y-1]);
         }
 
         // North
-        if(grid[x] && grid[x][y+1]) {
+        if(grid[x] && grid[x][y+1] && IsDirectionEnabled('n')) {
             ret.push(grid[x][y+1]);
         }
 
         if (diagonals) {
 
             // Southwest
-            if(grid[x-1] && grid[x-1][y-1]) {
+            if(grid[x-1] && grid[x-1][y-1] && IsDirectionEnabled('sw')) {
                 ret.push(grid[x-1][y-1]);
             }
 
             // Southeast
-            if(grid[x+1] && grid[x+1][y-1]) {
+            if(grid[x+1] && grid[x+1][y-1] && IsDirectionEnabled('se')) {
                 ret.push(grid[x+1][y-1]);
             }
 
             // Northwest
-            if(grid[x-1] && grid[x-1][y+1]) {
+            if(grid[x-1] && grid[x-1][y+1] && IsDirectionEnabled('nw')) {
                 ret.push(grid[x-1][y+1]);
             }
 
             // Northeast
-            if(grid[x+1] && grid[x+1][y+1]) {
+            if(grid[x+1] && grid[x+1][y+1] && IsDirectionEnabled('ne')) {
                 ret.push(grid[x+1][y+1]);
             }
 
