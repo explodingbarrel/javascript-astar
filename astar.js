@@ -5,6 +5,8 @@
 // Includes Binary Heap (with modifications) from Marijn Haverbeke.
 // http://eloquentjavascript.net/appendix2.html
 
+"use strict";
+
 (function(definition) {
     if(typeof module === 'object' && typeof module.exports === 'object') {
         module.exports = definition();
@@ -52,6 +54,7 @@ var astar = {
         options = options || {};
         var heuristic = options.heuristic || astar.manhattan;
         var diagonal = !!options.diagonal;
+        var portals = !!options.portals;
         var closest = options.closest || false;
 
         var openHeap = astar.heap();
@@ -89,7 +92,8 @@ var astar = {
 
             // Find all neighbors for the current node. Optionally find diagonal neighbors as well (false by default).
             var disabledDirections = (currentNode.options.disabledDirections != null) ? currentNode.options.disabledDirections : {};
-            var neighbors = astar.neighbors(grid, currentNode, {diagonals:diagonal, disabledDirections:disabledDirections});
+            var portalTargets = ((currentNode.options.portalTargets != null) && portals) ? currentNode.options.portalTargets : [];
+            var neighbors = astar.neighbors(grid, currentNode, {diagonals:diagonal, disabledDirections:disabledDirections, portalTargets:portalTargets});
 
             var validNeighborCount = 0;
             for(var i in neighbors) {
@@ -101,7 +105,7 @@ var astar = {
 
             //This will help us find paths that are mostly not diagonal, but may have node that diagonal is the only option
             if ((validNeighborCount == 0) && (diagonal == false)) {
-                astar.neighbors(grid, currentNode, {diagonals:true, disabledDirections:disabledDirections});
+                astar.neighbors(grid, currentNode, {diagonals:true, disabledDirections:disabledDirections, portalTargets:portalTargets});
             }
 
             for(var i=0, il = neighbors.length; i < il; i++) {
@@ -177,9 +181,14 @@ var astar = {
         options = options || {};
         var diagonals = options.diagonals || false;
         var dd = options.disabledDirections || {};
+        var pt = options.portalTargets || [];
 
         function IsDirectionEnabled(dir) {
             return !dd[dir];
+        }
+
+        function PositionExists(px, py) {
+            return (grid[px] && grid[px][py]);
         }
 
         // West
@@ -224,6 +233,13 @@ var astar = {
                 ret.push(grid[x+1][y+1]);
             }
 
+        }
+
+        for (var p=0; p<pt.length; p++) {
+            var target = pt[p];
+            if (PositionExists(target.x, target.y)) {
+                ret.push(grid[target.x][target.y]);
+            }
         }
 
         return ret;
