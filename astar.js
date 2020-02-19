@@ -196,43 +196,43 @@ Graph.prototype.neighbors = function(node) {
   var grid = this.grid;
 
   // West
-  if (grid[x - 1] && grid[x - 1][y]) {
+  if (grid[x - 1] && grid[x - 1][y] && node.isDirectionEnabled('w')) {
     ret.push(grid[x - 1][y]);
   }
 
   // East
-  if (grid[x + 1] && grid[x + 1][y]) {
+  if (grid[x + 1] && grid[x + 1][y] && node.isDirectionEnabled('e')) {
     ret.push(grid[x + 1][y]);
   }
 
   // South
-  if (grid[x] && grid[x][y - 1]) {
+  if (grid[x] && grid[x][y - 1] && node.isDirectionEnabled('s')) {
     ret.push(grid[x][y - 1]);
   }
 
   // North
-  if (grid[x] && grid[x][y + 1]) {
+  if (grid[x] && grid[x][y + 1] && node.isDirectionEnabled('n')) {
     ret.push(grid[x][y + 1]);
   }
 
   if (this.diagonal) {
     // Southwest
-    if (grid[x - 1] && grid[x - 1][y - 1]) {
+    if (grid[x - 1] && grid[x - 1][y - 1] && node.isDirectionEnabled('sw')) {
       ret.push(grid[x - 1][y - 1]);
     }
 
     // Southeast
-    if (grid[x + 1] && grid[x + 1][y - 1]) {
+    if (grid[x + 1] && grid[x + 1][y - 1] && node.isDirectionEnabled('se')) {
       ret.push(grid[x + 1][y - 1]);
     }
 
     // Northwest
-    if (grid[x - 1] && grid[x - 1][y + 1]) {
+    if (grid[x - 1] && grid[x - 1][y + 1] && node.isDirectionEnabled('nw')) {
       ret.push(grid[x - 1][y + 1]);
     }
 
     // Northeast
-    if (grid[x + 1] && grid[x + 1][y + 1]) {
+    if (grid[x + 1] && grid[x + 1][y + 1] && node.isDirectionEnabled('ne')) {
       ret.push(grid[x + 1][y + 1]);
     }
   }
@@ -254,10 +254,21 @@ Graph.prototype.toString = function() {
   return graphString.join("\n");
 };
 
-function GridNode(x, y, weight) {
+/**
+ * 
+ * @param {number} x 
+ * @param {number} y 
+ * @param {Object} tile - tile object passed in
+ * @param {number} tile.cost - tile cost
+ * @param {Object} tile.options - tile options
+ * @param {Object} tile.options.disabledDirections - tile disabled direction options
+ */
+function GridNode(x, y, tile) {
+  const { cost: weight = 0, options = {} } = tile || {};
   this.x = x;
   this.y = y;
   this.weight = weight;
+  this.disabledDirections = options.disabledDirections;
 }
 
 GridNode.prototype.toString = function() {
@@ -274,6 +285,10 @@ GridNode.prototype.getCost = function(fromNeighbor) {
 
 GridNode.prototype.isWall = function() {
   return this.weight === 0;
+};
+
+GridNode.prototype.isDirectionEnabled = function(dir) {
+  return !this.disabledDirections || !this.disabledDirections[dir];
 };
 
 function BinaryHeap(scoreFunction) {
